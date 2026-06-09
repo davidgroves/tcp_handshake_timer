@@ -1,0 +1,6 @@
+bin/
+.git/
+.gitignore
+*.md
+.cursor/
+test/integration/

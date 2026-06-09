@@ -1,0 +1,27 @@
+# Local example: monitor TCP/53 handshakes on loopback (dig @127.0.0.1 +tcp).
+# Requires a DNS server listening on 127.0.0.1:53 and host networking + BPF caps.
+#
+#   docker compose up --build
+#
+# See README "Local development with Docker Compose" for URLs and test commands.
+
+services:
+  thtimer:
+    build: .
+    image: thtimer:latest
+    container_name: thtimer
+    network_mode: host
+    cap_add:
+      - BPF
+      - NET_ADMIN
+      - PERFMON
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./config.docker.local.yaml:/config/config.yaml:ro
+    restart: unless-stopped

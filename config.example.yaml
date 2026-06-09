@@ -1,0 +1,14 @@
+interfaces:
+  - lo
+ports:
+  - 53
+sample_rate_pct: 100     # 100% of SYN-ACK flows tracked in kernel
+subnet_prefix_v4: 24     # 24-bit subnet prefix for IPv4
+subnet_prefix_v6: 48     # 48-bit subnet prefix for IPv6
+log_sample_pct: 1        # 1% of completed measurements logged
+log_level: info          # log verbosity: debug, info, warn, error
+max_memory: 1073741824  # 1 Gigabyte
+max_samples: 1000000    # 1 million samples
+topn: 100
+max_subnets: 100000     # 100,000 subnets
+listen_addr: ":8080"    # HTTP listen address

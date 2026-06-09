@@ -1,0 +1,342 @@
+openapi: 3.0.3
+info:
+  title: thtimer HTTP API
+  version: 1.0.0
+  description: |
+    **thtimer** passively measures TCP handshake round-trip time (RTT) on a DNS/TCP
+    server using eBPF. It records the interval from the server's SYN-ACK (egress)
+    to the client's completing ACK (ingress).
+
+    Use this API to inspect raw samples, aggregated latency percentiles, and the
+    slowest clients. Prometheus metrics are exposed separately at `/metrics`.
+
+    Default base URL: `http://localhost:8080` (configurable via `listen_addr`).
+
+servers:
+  - url: http://localhost:8080
+    description: Local default (listen_addr `:8080`)
+
+tags:
+  - name: Health
+    description: Liveness checks
+  - name: Measurements
+    description: Handshake RTT data collected by thtimer
+  - name: Metrics
+    description: Prometheus exposition format
+
+paths:
+  /healthz:
+    get:
+      tags: [Health]
+      summary: Health check
+      description: Returns `ok` when the HTTP server is running.
+      operationId: getHealth
+      responses:
+        "200":
+          description: Service is up
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: ok
+
+  /api/dump:
+    get:
+      tags: [Measurements]
+      summary: Dump all retained measurements
+      description: |
+        Returns every raw handshake RTT sample currently held in the in-memory
+        store (subject to `max_samples` and `max_memory` limits). Oldest samples
+        are evicted when limits are reached.
+
+        Useful for exporting data to analysis tools or debugging.
+      operationId: dumpMeasurements
+      responses:
+        "200":
+          description: Full snapshot of retained measurements
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DumpResponse"
+              example:
+                generated_at: "2026-06-09T14:30:00Z"
+                count: 2
+                memory_bytes: 256
+                measurements:
+                  - client_ip: "203.0.113.10"
+                    client_port: 54321
+                    server_ip: "198.51.100.1"
+                    server_port: 53
+                    rtt_ns: 1250000
+                    timestamp: "2026-06-09T14:29:58Z"
+                  - client_ip: "203.0.113.10"
+                    client_port: 54322
+                    server_ip: "198.51.100.1"
+                    server_port: 53
+                    rtt_ns: 980000
+                    timestamp: "2026-06-09T14:29:59Z"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/stats:
+    get:
+      tags: [Measurements]
+      summary: Latency percentiles
+      description: |
+        Returns aggregated RTT statistics across all measurements seen since
+        thtimer started.
+
+        - **overall** — percentiles across every sample
+        - **subnets** — same percentiles grouped by client subnet (prefix length
+          set by `subnet_prefix_v4` / `subnet_prefix_v6` in config)
+
+        All latency values are in **nanoseconds**.
+      operationId: getStats
+      responses:
+        "200":
+          description: Percentile statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatsResponse"
+              example:
+                generated_at: "2026-06-09T14:30:00Z"
+                overall:
+                  count: 150
+                  p50_ns: 1200000
+                  p90_ns: 4500000
+                  p99_ns: 12000000
+                  max_ns: 45300000
+                subnets:
+                  - subnet: "203.0.113.0/24"
+                    stats:
+                      count: 80
+                      p50_ns: 1100000
+                      p90_ns: 3800000
+                      p99_ns: 10500000
+                      max_ns: 30000000
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/topn:
+    get:
+      tags: [Measurements]
+      summary: Slowest clients
+      description: |
+        Returns the **N slowest** individual handshake measurements tracked
+        since startup, sorted by RTT (highest first).
+
+        The default **N** comes from the `topn` config setting (default 100).
+      operationId: getTopN
+      parameters:
+        - name: n
+          in: query
+          required: false
+          description: Number of entries to return (must be a positive integer)
+          schema:
+            type: integer
+            minimum: 1
+            example: 10
+      responses:
+        "200":
+          description: Slowest client measurements
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TopNResponse"
+              example:
+                generated_at: "2026-06-09T14:30:00Z"
+                entries:
+                  - client_ip: "203.0.113.99"
+                    client_port: 44102
+                    rtt_ns: 45300000
+                    seen_at: "2026-06-09T14:28:00Z"
+                  - client_ip: "203.0.113.10"
+                    client_port: 54321
+                    rtt_ns: 12000000
+                    seen_at: "2026-06-09T14:29:00Z"
+        "400":
+          description: Invalid `n` query parameter
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: invalid n
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /metrics:
+    get:
+      tags: [Metrics]
+      summary: Prometheus metrics
+      description: |
+        Standard Prometheus text exposition format. Key series include:
+
+        | Metric | Type | Description |
+        |--------|------|-------------|
+        | `thtimer_measurements_made_total` | counter | Completed RTT measurements |
+        | `thtimer_measurements_logged_total` | counter | Measurements written to logs |
+        | `thtimer_handshake_rtt_seconds` | histogram | RTT distribution |
+        | `thtimer_synacks_observed_total` | counter | SYN-ACK packets seen |
+        | `thtimer_incomplete_handshakes_total` | counter | ACKs with no matching flow |
+        | `thtimer_flows_in_flight` | gauge | Flows awaiting client ACK |
+        | `thtimer_state_samples` | gauge | Raw samples in memory |
+        | `thtimer_state_memory_bytes` | gauge | Approximate state store size |
+      operationId: getPrometheusMetrics
+      responses:
+        "200":
+          description: Prometheus text format
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: |
+                  # HELP thtimer_measurements_made_total Total completed SYN-ACK to ACK RTT measurements.
+                  # TYPE thtimer_measurements_made_total counter
+                  thtimer_measurements_made_total 42
+
+components:
+  responses:
+    InternalError:
+      description: Internal server error
+      content:
+        text/plain:
+          schema:
+            type: string
+
+  schemas:
+    PercentileStats:
+      type: object
+      description: RTT percentile summary (nanoseconds)
+      properties:
+        count:
+          type: integer
+          format: int64
+          description: Number of samples in this bucket
+          example: 150
+        p50_ns:
+          type: integer
+          format: int64
+          description: Median RTT in nanoseconds
+          example: 1200000
+        p90_ns:
+          type: integer
+          format: int64
+          description: 90th percentile RTT in nanoseconds
+          example: 4500000
+        p99_ns:
+          type: integer
+          format: int64
+          description: 99th percentile RTT in nanoseconds
+          example: 12000000
+        max_ns:
+          type: integer
+          format: int64
+          description: Maximum RTT observed in nanoseconds
+          example: 45300000
+
+    SubnetStats:
+      type: object
+      properties:
+        subnet:
+          type: string
+          description: Client subnet in CIDR notation
+          example: "203.0.113.0/24"
+        stats:
+          $ref: "#/components/schemas/PercentileStats"
+
+    StatsResponse:
+      type: object
+      properties:
+        generated_at:
+          type: string
+          format: date-time
+          description: UTC time this response was built
+        overall:
+          $ref: "#/components/schemas/PercentileStats"
+        subnets:
+          type: array
+          items:
+            $ref: "#/components/schemas/SubnetStats"
+
+    MeasurementRecord:
+      type: object
+      description: A single completed handshake RTT measurement
+      properties:
+        client_ip:
+          type: string
+          description: Client IP address
+          example: "203.0.113.10"
+        client_port:
+          type: integer
+          format: int32
+          description: Client TCP port
+          example: 54321
+        server_ip:
+          type: string
+          description: Server IP address
+          example: "198.51.100.1"
+        server_port:
+          type: integer
+          format: int32
+          description: Server TCP port (e.g. 53 for DNS)
+          example: 53
+        rtt_ns:
+          type: integer
+          format: int64
+          description: Round-trip time in nanoseconds
+          example: 1250000
+        timestamp:
+          type: string
+          format: date-time
+          description: UTC wall-clock time when the measurement was received by thtimer
+
+    DumpResponse:
+      type: object
+      properties:
+        generated_at:
+          type: string
+          format: date-time
+        count:
+          type: integer
+          description: Number of measurements in this response
+          example: 2
+        memory_bytes:
+          type: integer
+          format: int64
+          description: Approximate bytes used by the in-memory store
+          example: 256
+        measurements:
+          type: array
+          items:
+            $ref: "#/components/schemas/MeasurementRecord"
+
+    TopNEntry:
+      type: object
+      properties:
+        client_ip:
+          type: string
+          example: "203.0.113.99"
+        client_port:
+          type: integer
+          format: int32
+          example: 44102
+        rtt_ns:
+          type: integer
+          format: int64
+          description: Round-trip time in nanoseconds
+          example: 45300000
+        seen_at:
+          type: string
+          format: date-time
+
+    TopNResponse:
+      type: object
+      properties:
+        generated_at:
+          type: string
+          format: date-time
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/TopNEntry"

@@ -1,0 +1,16 @@
+[Unit]
+Description=TCP handshake RTT timer (thtimer)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/thtimer -config /etc/thtimer/config.yaml
+Restart=on-failure
+RestartSec=5
+AmbientCapabilities=CAP_BPF CAP_NET_ADMIN CAP_PERFMON CAP_SYS_ADMIN
+CapabilityBoundingSet=CAP_BPF CAP_NET_ADMIN CAP_PERFMON CAP_SYS_ADMIN
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

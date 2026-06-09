@@ -1,0 +1,15 @@
+# Local Docker Compose example — attaches to loopback for dig @127.0.0.1 +tcp tests.
+interfaces:
+  - lo
+ports:
+  - 53
+sample_rate_pct: 100
+subnet_prefix_v4: 24
+subnet_prefix_v6: 48
+log_sample_pct: 100
+log_level: info
+max_memory: 67108864
+max_samples: 100000
+topn: 100
+max_subnets: 10000
+listen_addr: ":8080"
