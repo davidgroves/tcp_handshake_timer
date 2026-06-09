@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dwg/tcp_handshake_timer/internal/measurement"
+	"codeberg.org/davidgroves/tcp_handshake_timer/internal/measurement"
 )
 
 func TestDecodeEventIPv4(t *testing.T) {

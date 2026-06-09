@@ -6,8 +6,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/dwg/tcp_handshake_timer/internal/config"
-	thtimer "github.com/dwg/tcp_handshake_timer/internal/ebpf"
+	"codeberg.org/davidgroves/tcp_handshake_timer/internal/config"
+	thtimer "codeberg.org/davidgroves/tcp_handshake_timer/internal/ebpf"
 )
 
 func TestAttachLoopback(t *testing.T) {

@@ -10,7 +10,7 @@ import (
 	"github.com/cilium/ebpf"
 	"github.com/cilium/ebpf/rlimit"
 
-	thtimer "github.com/dwg/tcp_handshake_timer/internal/ebpf"
+	thtimer "codeberg.org/davidgroves/tcp_handshake_timer/internal/ebpf"
 )
 
 func TestHandshakePrograms(t *testing.T) {

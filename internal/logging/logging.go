@@ -5,7 +5,7 @@ import (
 	"math/rand/v2"
 	"os"
 
-	"github.com/dwg/tcp_handshake_timer/internal/measurement"
+	"codeberg.org/davidgroves/tcp_handshake_timer/internal/measurement"
 )
 
 type SampledLogger struct {

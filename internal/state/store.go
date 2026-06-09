@@ -10,8 +10,8 @@ import (
 
 	tdigest "github.com/caio/go-tdigest/v4"
 
-	"github.com/dwg/tcp_handshake_timer/internal/config"
-	"github.com/dwg/tcp_handshake_timer/internal/measurement"
+	"codeberg.org/davidgroves/tcp_handshake_timer/internal/config"
+	"codeberg.org/davidgroves/tcp_handshake_timer/internal/measurement"
 )
 
 type Store struct {

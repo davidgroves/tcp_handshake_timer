@@ -8,11 +8,11 @@ import (
 
 	"github.com/cilium/ebpf/ringbuf"
 
-	"github.com/dwg/tcp_handshake_timer/internal/ebpf"
-	"github.com/dwg/tcp_handshake_timer/internal/logging"
-	"github.com/dwg/tcp_handshake_timer/internal/measurement"
-	"github.com/dwg/tcp_handshake_timer/internal/metrics"
-	"github.com/dwg/tcp_handshake_timer/internal/state"
+	"codeberg.org/davidgroves/tcp_handshake_timer/internal/ebpf"
+	"codeberg.org/davidgroves/tcp_handshake_timer/internal/logging"
+	"codeberg.org/davidgroves/tcp_handshake_timer/internal/measurement"
+	"codeberg.org/davidgroves/tcp_handshake_timer/internal/metrics"
+	"codeberg.org/davidgroves/tcp_handshake_timer/internal/state"
 )
 
 type Consumer struct {

@@ -7,8 +7,8 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"github.com/dwg/tcp_handshake_timer/internal/metrics"
-	"github.com/dwg/tcp_handshake_timer/internal/state"
+	"codeberg.org/davidgroves/tcp_handshake_timer/internal/metrics"
+	"codeberg.org/davidgroves/tcp_handshake_timer/internal/state"
 )
 
 type Server struct {

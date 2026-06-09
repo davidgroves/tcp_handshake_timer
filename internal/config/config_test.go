@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/dwg/tcp_handshake_timer/internal/config"
+	"codeberg.org/davidgroves/tcp_handshake_timer/internal/config"
 )
 
 func TestDefaultValidateMissingInterfaces(t *testing.T) {

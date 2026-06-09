@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dwg/tcp_handshake_timer/internal/config"
-	"github.com/dwg/tcp_handshake_timer/internal/measurement"
-	"github.com/dwg/tcp_handshake_timer/internal/state"
+	"codeberg.org/davidgroves/tcp_handshake_timer/internal/config"
+	"codeberg.org/davidgroves/tcp_handshake_timer/internal/measurement"
+	"codeberg.org/davidgroves/tcp_handshake_timer/internal/state"
 )
 
 func TestStoreRetentionAndStats(t *testing.T) {

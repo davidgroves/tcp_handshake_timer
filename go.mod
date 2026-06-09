@@ -1,4 +1,4 @@
-module github.com/dwg/tcp_handshake_timer
+module codeberg.org/davidgroves/tcp_handshake_timer
 
 go 1.26.4
 

@@ -8,11 +8,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dwg/tcp_handshake_timer/internal/api"
-	"github.com/dwg/tcp_handshake_timer/internal/config"
-	"github.com/dwg/tcp_handshake_timer/internal/measurement"
-	"github.com/dwg/tcp_handshake_timer/internal/metrics"
-	"github.com/dwg/tcp_handshake_timer/internal/state"
+	"codeberg.org/davidgroves/tcp_handshake_timer/internal/api"
+	"codeberg.org/davidgroves/tcp_handshake_timer/internal/config"
+	"codeberg.org/davidgroves/tcp_handshake_timer/internal/measurement"
+	"codeberg.org/davidgroves/tcp_handshake_timer/internal/metrics"
+	"codeberg.org/davidgroves/tcp_handshake_timer/internal/state"
 )
 
 func TestAPIHandlers(t *testing.T) {

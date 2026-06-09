@@ -8,8 +8,8 @@ import (
 	"github.com/cilium/ebpf/link"
 	"github.com/cilium/ebpf/rlimit"
 
-	"github.com/dwg/tcp_handshake_timer/internal/config"
-	"github.com/dwg/tcp_handshake_timer/internal/measurement"
+	"codeberg.org/davidgroves/tcp_handshake_timer/internal/config"
+	"codeberg.org/davidgroves/tcp_handshake_timer/internal/measurement"
 )
 
 type AttachMode string
