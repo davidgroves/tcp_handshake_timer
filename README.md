@@ -20,11 +20,18 @@ Passive TCP handshake RTT measurement for DNS/TCP servers using eBPF. The progra
 ## Build
 
 ```bash
-make generate
 make build
 ```
 
-Requires Go, clang, libbpf headers (`/usr/include/bpf`), and a BTF-enabled kernel (5.8+; TCX on 6.6+).
+This runs `make generate`, which:
+
+1. Downloads Swagger UI assets into `internal/api/static/swagger-ui/` (not
+   committed; pin with `SWAGGER_UI_VERSION`, default `5.18.3`)
+2. Runs `bpf2go` to compile the eBPF program
+
+Requires Go, clang, curl, libbpf headers (`/usr/include/bpf`), and a
+BTF-enabled kernel (5.8+; TCX on 6.6+) to **run** thtimer. The Docker build
+fetches Swagger UI inside the builder stage automatically.
 
 ## Run
 
@@ -71,9 +78,11 @@ See [`config.example.yaml`](config.example.yaml). Flags override YAML values.
 
 ## Docker
 
-The runtime image is **`scratch` plus the statically linked binary** (~17MB).
-Swagger UI, OpenAPI, and the eBPF program are embedded in the binary via
-`go:embed`. Mount a config file at run time (`/config/config.yaml`).
+The runtime image is **`scratch` plus the statically linked binary** (~20MB).
+Swagger UI, OpenAPI, and the eBPF program are embedded in the binary at **build
+time** (`go:embed`). Swagger assets are downloaded during `make build` / Docker
+build — they are not stored in git. Mount a config file at run time
+(`/config/config.yaml`).
 
 thtimer runs eBPF programs **on the host kernel** and attaches to **host network
 interfaces**. A normal bridge-networked container cannot see host NICs (`eth0`,

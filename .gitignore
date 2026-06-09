@@ -43,3 +43,6 @@ bpf/vmlinux.h
 
 # eBPF / C object files
 *.o
+
+# Swagger UI (downloaded by scripts/fetch-swagger-ui.sh at build time)
+internal/api/static/swagger-ui/
