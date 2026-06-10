@@ -1,5 +1,5 @@
 # CI: https://ci.codeberg.org/davidgroves/tcp_handshake_timer
-# Requires Woodpecker secret: woodpecker (Codeberg token with write:repository + package write)
+# Requires Woodpecker secret: woodpecker_tcp_handshake_timer (Codeberg token with write:repository + package write)
 
 variables:
   - &image ${CI_REPO_OWNER}/tcp_handshake_timer
@@ -59,7 +59,7 @@ steps:
     image: woodpeckerci/plugin-release
     settings:
       api_key:
-        from_secret: woodpecker
+        from_secret: woodpecker_tcp_handshake_timer
       title: .version
       note: .release-note
       files:
@@ -82,7 +82,7 @@ steps:
       auto_tag: true
       username: ${CI_REPO_OWNER}
       password:
-        from_secret: woodpecker
+        from_secret: woodpecker_tcp_handshake_timer
     depends_on: [version, test]
     when:
       event: tag

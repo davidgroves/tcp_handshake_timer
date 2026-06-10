@@ -39,8 +39,9 @@ Linux amd64 binaries and container images are published to Codeberg when a
 **`v*`** git tag is pushed (e.g. `v0.1.0`). CI runs on
 [Woodpecker](https://ci.codeberg.org/davidgroves/tcp_handshake_timer).
 
-Configure a Woodpecker secret named **`woodpecker`**: a Codeberg personal access
-token with **write:repository** and **package write** scopes.
+Configure a Woodpecker secret named **`woodpecker_tcp_handshake_timer`**: a
+Codeberg personal access token with **write:repository** and **package write**
+scopes.
 
 To cut a release:
 
