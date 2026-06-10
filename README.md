@@ -33,6 +33,33 @@ Requires Go, clang, curl, libbpf headers (`/usr/include/bpf`), and a
 BTF-enabled kernel (5.8+; TCX on 6.6+) to **run** thtimer. The Docker build
 fetches Swagger UI inside the builder stage automatically.
 
+## Releases
+
+Linux amd64 binaries and container images are published to Codeberg when a
+**`v*`** git tag is pushed (e.g. `v0.1.0`). CI runs on
+[Woodpecker](https://ci.codeberg.org/davidgroves/tcp_handshake_timer).
+
+Configure a Woodpecker secret named **`woodpecker`**: a Codeberg personal access
+token with **write:repository** and **package write** scopes.
+
+To cut a release:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+Woodpecker runs tests, creates a Codeberg release with the static binary and
+SHA256 checksum, builds the container, and pushes tags `v0.1.0` and `latest` to
+the registry.
+
+```bash
+docker pull codeberg.org/davidgroves/tcp_handshake_timer:v0.1.0
+```
+
+Download the `thtimer-v0.1.0-linux-amd64` binary from the release assets on
+Codeberg. Pin a specific version in production rather than `:latest`.
+
 ## Run
 
 ```bash

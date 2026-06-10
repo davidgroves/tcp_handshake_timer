@@ -1,0 +1,89 @@
+# CI: https://ci.codeberg.org/davidgroves/tcp_handshake_timer
+# Requires Woodpecker secret: woodpecker (Codeberg token with write:repository + package write)
+
+variables:
+  - &image ${CI_REPO_OWNER}/tcp_handshake_timer
+
+steps:
+  test:
+    image: golang:bookworm
+    commands:
+      - ./scripts/ci-deps.sh
+      - make test-unit
+    when:
+      event: [push, pull_request, tag]
+
+  build-check:
+    image: woodpeckerci/plugin-kaniko
+    settings:
+      registry: codeberg.org
+      repo: *image
+      dockerfile: Dockerfile
+      dry_run: true
+      tags: check
+    when:
+      event: pull_request
+
+  version:
+    image: alpine
+    commands:
+      - TAG="${CI_COMMIT_TAG#refs/tags/}"
+      - echo "$TAG" > .version
+      - echo "VERSION=$TAG" >> envvars
+      - |
+        printf 'Container image:\n\n```\n%s:%s\n```\n\n' \
+          "codeberg.org/${CI_REPO_OWNER}/tcp_handshake_timer" "$TAG" > .release-note
+        printf 'Go binary (linux/amd64):\n\n```\nthtimer-%s-linux-amd64\n```\n\n' \
+          "$TAG" >> .release-note
+        printf 'SHA256 checksum file is attached to this release.\n' >> .release-note
+    when:
+      event: tag
+      ref: refs/tags/v*
+
+  build-binary:
+    image: golang:bookworm
+    commands:
+      - ./scripts/ci-deps.sh
+      - TAG="${CI_COMMIT_TAG#refs/tags/}"
+      - make generate
+      - mkdir -p dist
+      - |
+        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+          go build -tags linux -ldflags="-s -w" \
+          -o "dist/thtimer-${TAG}-linux-amd64" ./cmd/thtimer
+    when:
+      event: tag
+      ref: refs/tags/v*
+
+  release:
+    image: woodpeckerci/plugin-release
+    settings:
+      api_key:
+        from_secret: woodpecker
+      title: .version
+      note: .release-note
+      files:
+        - dist/thtimer-*-linux-amd64
+      checksum:
+        - sha256
+    depends_on: [version, test, build-binary]
+    when:
+      event: tag
+      ref: refs/tags/v*
+
+  publish:
+    # Kaniko: no Docker daemon / privileged mode (required on Codeberg shared CI).
+    # See https://codeberg.org/Codeberg-CI/feedback/issues/274
+    image: woodpeckerci/plugin-kaniko
+    settings:
+      registry: codeberg.org
+      repo: *image
+      dockerfile: Dockerfile
+      auto_tag: true
+      username: ${CI_REPO_OWNER}
+      password:
+        from_secret: woodpecker
+    depends_on: [version, test]
+    when:
+      event: tag
+      ref: refs/tags/v*

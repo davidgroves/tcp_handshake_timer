@@ -33,6 +33,7 @@ go.work.sum
 
 # Project build output
 /bin/
+/dist/
 /thtimer
 
 # bpf2go generated artifacts (from internal/ebpf/go:generate)
