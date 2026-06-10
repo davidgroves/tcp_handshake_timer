@@ -15,7 +15,7 @@ build: generate
 
 test: test-unit
 
-test-unit:
+test-unit: generate
 	go test -tags linux ./...
 
 test-integration:
