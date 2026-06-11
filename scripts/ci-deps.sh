@@ -3,4 +3,4 @@ set -euo pipefail
 
 apt-get update
 apt-get install -y --no-install-recommends \
-    clang curl llvm libbpf-dev gcc-aarch64-linux-gnu
+    clang curl llvm libbpf-dev gcc-aarch64-linux-gnu linux-libc-dev-arm64-cross
