@@ -32,15 +32,14 @@ steps:
     commands:
       - |
         set -eu
-        TAG="${CI_COMMIT_TAG#refs/tags/}"
-        echo "$TAG" > .version
-        echo "VERSION=$TAG" >> envvars
+        echo "${CI_COMMIT_TAG}" > .version
+        echo "VERSION=${CI_COMMIT_TAG}" >> envvars
         printf 'Container image:\n\n```\n%s:%s\n```\n\n' \
-          "codeberg.org/${CI_REPO_OWNER}/tcp_handshake_timer" "$TAG" > .release-note
+          "codeberg.org/${CI_REPO_OWNER}/tcp_handshake_timer" "${CI_COMMIT_TAG}" > .release-note
         printf 'Go binary (linux/amd64):\n\n```\nthtimer-%s-linux-amd64\n```\n\n' \
-          "$TAG" >> .release-note
+          "${CI_COMMIT_TAG}" >> .release-note
         printf 'Source archive:\n\n```\ntcp_handshake_timer-%s.tar.gz\n```\n\n' \
-          "$TAG" >> .release-note
+          "${CI_COMMIT_TAG}" >> .release-note
         printf 'SHA256 checksum file is attached to this release.\n' >> .release-note
     when:
       event: tag
@@ -52,10 +51,9 @@ steps:
       - apk add --no-cache git
       - |
         set -eu
-        TAG="${CI_COMMIT_TAG#refs/tags/}"
         mkdir -p dist
-        git archive --format=tar.gz --prefix="${CI_REPO_NAME}-${TAG}/" \
-          -o "dist/${CI_REPO_NAME}-${TAG}.tar.gz" HEAD
+        git archive --format=tar.gz --prefix="${CI_REPO_NAME}-${CI_COMMIT_TAG}/" \
+          -o "dist/${CI_REPO_NAME}-${CI_COMMIT_TAG}.tar.gz" HEAD
     when:
       event: tag
       ref: refs/tags/v*
@@ -66,12 +64,11 @@ steps:
       - ./scripts/ci-deps.sh
       - |
         set -eu
-        TAG="${CI_COMMIT_TAG#refs/tags/}"
         make generate
         mkdir -p dist
         CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
           go build -tags linux -ldflags="-s -w" \
-          -o "dist/thtimer-${TAG}-linux-amd64" ./cmd/thtimer
+          -o "dist/thtimer-${CI_COMMIT_TAG}-linux-amd64" ./cmd/thtimer
     when:
       event: tag
       ref: refs/tags/v*
