@@ -1,0 +1,17 @@
+services:
+  woodpecker-agent:
+    image: woodpeckerci/woodpecker-agent:v3.13.0
+    command: agent
+    restart: always
+    volumes:
+      - woodpecker-agent-config:/etc/woodpecker
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WOODPECKER_SERVER=grpc.ci.codeberg.org:443
+      - WOODPECKER_GRPC_SECURE=true
+      - WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET}
+      - WOODPECKER_MAX_WORKFLOWS=2
+      - WOODPECKER_AGENT_LABELS=instance=fibrecat
+
+volumes:
+  woodpecker-agent-config:

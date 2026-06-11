@@ -4,6 +4,9 @@
 variables:
   - &image ${CI_REPO_OWNER}/tcp_handshake_timer
 
+labels:
+  instance: fibrecat
+
 steps:
   test:
     image: golang:bookworm
