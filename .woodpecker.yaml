@@ -34,10 +34,10 @@ steps:
         set -eu
         echo "${CI_COMMIT_TAG}" > .version
         echo "VERSION=${CI_COMMIT_TAG}" >> envvars
-        printf 'Container image:\n\n```\n%s:%s\n```\n\n' \
+        printf 'Container image (linux/amd64, linux/arm64):\n\n```\n%s:%s\n```\n\n' \
           "codeberg.org/${CI_REPO_OWNER}/tcp_handshake_timer" "${CI_COMMIT_TAG}" > .release-note
-        printf 'Go binary (linux/amd64):\n\n```\nthtimer-%s-linux-amd64\n```\n\n' \
-          "${CI_COMMIT_TAG}" >> .release-note
+        printf 'Go binaries:\n\n```\nthtimer-%s-linux-amd64\nthtimer-%s-linux-arm64\n```\n\n' \
+          "${CI_COMMIT_TAG}" "${CI_COMMIT_TAG}" >> .release-note
         printf 'Source archive:\n\n```\ntcp_handshake_timer-%s.tar.gz\n```\n\n' \
           "${CI_COMMIT_TAG}" >> .release-note
         printf 'SHA256 checksum file is attached to this release.\n' >> .release-note
@@ -62,25 +62,21 @@ steps:
     image: golang:bookworm
     commands:
       - ./scripts/ci-deps.sh
-      - |
-        set -eu
-        make generate
-        mkdir -p dist
-        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-          go build -tags linux -ldflags="-s -w" \
-          -o "dist/thtimer-${CI_COMMIT_TAG}-linux-amd64" ./cmd/thtimer
+      - chmod +x ./scripts/ci-build-release-binaries.sh
+      - ./scripts/ci-build-release-binaries.sh dist
     when:
       event: tag
       ref: refs/tags/v*
 
   publish:
-    # Kaniko: no Docker daemon / privileged mode (required on Codeberg shared CI).
-    # See https://codeberg.org/Codeberg-CI/feedback/issues/274
-    image: woodpeckerci/plugin-kaniko
+    # Multi-arch images via buildx on the fibrecat agent (Docker socket / privileged).
+    image: woodpeckerci/plugin-docker-buildx
+    privileged: true
     settings:
       registry: codeberg.org
       repo: *image
       dockerfile: Dockerfile
+      platforms: linux/amd64,linux/arm64/v8
       auto_tag: true
       username: ${CI_REPO_OWNER}
       password:
@@ -99,6 +95,7 @@ steps:
       note: .release-note
       files:
         - dist/thtimer-*-linux-amd64
+        - dist/thtimer-*-linux-arm64
         - dist/tcp_handshake_timer-*.tar.gz
       checksum:
         - sha256
