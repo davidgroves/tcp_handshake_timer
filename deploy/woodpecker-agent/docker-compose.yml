@@ -1,6 +1,6 @@
 services:
   woodpecker-agent:
-    image: woodpeckerci/woodpecker-agent:v3.13.0
+    image: woodpeckerci/woodpecker-agent:v3.15.0
     command: agent
     restart: always
     volumes:
