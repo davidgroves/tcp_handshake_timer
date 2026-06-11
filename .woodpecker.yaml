@@ -38,7 +38,18 @@ steps:
           "codeberg.org/${CI_REPO_OWNER}/tcp_handshake_timer" "$TAG" > .release-note
         printf 'Go binary (linux/amd64):\n\n```\nthtimer-%s-linux-amd64\n```\n\n' \
           "$TAG" >> .release-note
+        printf 'Source archive:\n\n```\ntcp_handshake_timer-%s.tar.gz\n```\n\n' \
+          "$TAG" >> .release-note
         printf 'SHA256 checksum file is attached to this release.\n' >> .release-note
+    when:
+      event: tag
+      ref: refs/tags/v*
+
+  build-source:
+    image: alpine
+    commands:
+      - apk add --no-cache git
+      - ./scripts/ci-release-assets.sh
     when:
       event: tag
       ref: refs/tags/v*
@@ -58,22 +69,6 @@ steps:
       event: tag
       ref: refs/tags/v*
 
-  release:
-    image: woodpeckerci/plugin-release
-    settings:
-      api_key:
-        from_secret: woodpecker_tcp_handshake_timer
-      title: .version
-      note: .release-note
-      files:
-        - dist/thtimer-*-linux-amd64
-      checksum:
-        - sha256
-    depends_on: [version, test, build-binary]
-    when:
-      event: tag
-      ref: refs/tags/v*
-
   publish:
     # Kaniko: no Docker daemon / privileged mode (required on Codeberg shared CI).
     # See https://codeberg.org/Codeberg-CI/feedback/issues/274
@@ -87,6 +82,23 @@ steps:
       password:
         from_secret: woodpecker_tcp_handshake_timer
     depends_on: [version, test]
+    when:
+      event: tag
+      ref: refs/tags/v*
+
+  release:
+    image: woodpeckerci/plugin-release
+    settings:
+      api_key:
+        from_secret: woodpecker_tcp_handshake_timer
+      title: .version
+      note: .release-note
+      files:
+        - dist/thtimer-*-linux-amd64
+        - dist/tcp_handshake_timer-*.tar.gz
+      checksum:
+        - sha256
+    depends_on: [version, test, build-source, build-binary, publish]
     when:
       event: tag
       ref: refs/tags/v*

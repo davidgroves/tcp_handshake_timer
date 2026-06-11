@@ -50,9 +50,9 @@ git tag v0.1.0
 git push origin v0.1.0
 ```
 
-Woodpecker runs tests, creates a Codeberg release with the static binary and
-SHA256 checksum, builds the container, and pushes tags `v0.1.0` and `latest` to
-the registry.
+Woodpecker runs tests, builds the container and pushes tags `v0.1.0` and `latest`
+to the registry, then creates a Codeberg release with the static binary, source
+`.tar.gz`, and SHA256 checksum.
 
 ```bash
 docker pull codeberg.org/davidgroves/tcp_handshake_timer:v0.1.0
