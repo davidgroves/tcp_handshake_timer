@@ -68,20 +68,46 @@ steps:
       event: tag
       ref: refs/tags/v*
 
-  publish:
-    # Multi-arch images via buildx on the fibrecat agent (Docker socket / privileged).
-    image: woodpeckerci/plugin-docker-buildx
-    privileged: true
+  publish-amd64:
+    image: woodpeckerci/plugin-kaniko
     settings:
       registry: codeberg.org
-      repo: *image
+      repo: ${CI_REPO_OWNER}/tcp_handshake_timer-amd64
       dockerfile: Dockerfile
-      platforms: linux/amd64,linux/arm64/v8
-      auto_tag: true
+      tags: ${CI_COMMIT_TAG}
+      build_args:
+        - TARGETARCH=amd64
       username: ${CI_REPO_OWNER}
       password:
         from_secret: woodpecker_tcp_handshake_timer
     depends_on: [version, test]
+    when:
+      event: tag
+      ref: refs/tags/v*
+
+  publish-arm64:
+    image: ghcr.io/osscontainertools/kaniko:v1.25.6
+    environment:
+      REGISTRY_TOKEN:
+        from_secret: woodpecker_tcp_handshake_timer
+    commands:
+      - chmod +x ./scripts/ci-kaniko-arm64.sh
+      - ./scripts/ci-kaniko-arm64.sh tcp_handshake_timer
+    depends_on: [version, test]
+    when:
+      event: tag
+      ref: refs/tags/v*
+
+  publish-manifest:
+    image: alpine
+    environment:
+      REGISTRY_TOKEN:
+        from_secret: woodpecker_tcp_handshake_timer
+    commands:
+      - apk add --no-cache curl
+      - chmod +x ./scripts/ci-publish-manifest.sh
+      - ./scripts/ci-publish-manifest.sh tcp_handshake_timer
+    depends_on: [publish-amd64, publish-arm64]
     when:
       event: tag
       ref: refs/tags/v*
@@ -99,7 +125,7 @@ steps:
         - dist/tcp_handshake_timer-*.tar.gz
       checksum:
         - sha256
-    depends_on: [version, test, build-source, build-binary, publish]
+    depends_on: [version, test, build-source, build-binary, publish-manifest]
     when:
       event: tag
       ref: refs/tags/v*
