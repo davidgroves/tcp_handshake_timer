@@ -1,0 +1,6 @@
+# Release image: static binary is built in CI (build-binary step) and copied in.
+ARG BINARY
+FROM scratch
+COPY ${BINARY} /thtimer
+ENTRYPOINT ["/thtimer"]
+CMD ["-config", "/config/config.yaml"]

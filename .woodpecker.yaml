@@ -73,27 +73,31 @@ steps:
     settings:
       registry: codeberg.org
       repo: ${CI_REPO_OWNER}/tcp_handshake_timer-amd64
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.release
       tags: ${CI_COMMIT_TAG}
       build_args:
-        - TARGETARCH=amd64
+        - BINARY=dist/thtimer-${CI_COMMIT_TAG}-linux-amd64
       username: ${CI_REPO_OWNER}
       password:
         from_secret: woodpecker_tcp_handshake_timer
-    depends_on: [version, test]
+    depends_on: [version, test, build-binary]
     when:
       event: tag
       ref: refs/tags/v*
 
   publish-arm64:
-    image: ghcr.io/osscontainertools/kaniko:v1.25.6
-    environment:
-      REGISTRY_TOKEN:
+    image: woodpeckerci/plugin-kaniko
+    settings:
+      registry: codeberg.org
+      repo: ${CI_REPO_OWNER}/tcp_handshake_timer-arm64
+      dockerfile: Dockerfile.release
+      tags: ${CI_COMMIT_TAG}
+      build_args:
+        - BINARY=dist/thtimer-${CI_COMMIT_TAG}-linux-arm64
+      username: ${CI_REPO_OWNER}
+      password:
         from_secret: woodpecker_tcp_handshake_timer
-    commands:
-      - chmod +x ./scripts/ci-kaniko-arm64.sh
-      - ./scripts/ci-kaniko-arm64.sh tcp_handshake_timer
-    depends_on: [version, test]
+    depends_on: [version, test, build-binary]
     when:
       event: tag
       ref: refs/tags/v*
