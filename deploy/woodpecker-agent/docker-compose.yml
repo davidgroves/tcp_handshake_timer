@@ -12,6 +12,7 @@ services:
       - WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET}
       - WOODPECKER_MAX_WORKFLOWS=2
       - WOODPECKER_AGENT_LABELS=instance=fibrecat
+      - WOODPECKER_BACKEND_DOCKER_VOLUMES=/var/run/docker.sock:/var/run/docker.sock
 
 volumes:
   woodpecker-agent-config:
