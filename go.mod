@@ -3,7 +3,8 @@ module codeberg.org/davidgroves/tcp_handshake_timer
 go 1.26.4
 
 require (
-	github.com/caio/go-tdigest/v4 v4.0.1
+	github.com/caio/go-tdigest/v4 v4.1.0
+	github.com/caio/go-tdigest/v5 v5.0.0
 	github.com/cilium/ebpf v0.19.0
 	github.com/prometheus/client_golang v1.22.0
 	github.com/vishvananda/netlink v1.3.1
